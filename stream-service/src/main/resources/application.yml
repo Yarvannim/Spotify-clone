@@ -66,22 +66,33 @@ object:
 server:
   port: 8008
 
-logging:
-  level:
-    # Spring Security specific logging
-    org.springframework.security: DEBUG
-    org.springframework.security.oauth2: DEBUG
-    org.springframework.security.web: DEBUG
-    org.springframework.security.config: DEBUG
+#logging:
+#  level:
+#    # Spring Security specific logging
+#    org.springframework.security: DEBUG
+#    org.springframework.security.oauth2: DEBUG
+#    org.springframework.security.web: DEBUG
+#    org.springframework.security.config: DEBUG
+#
+#    # JWT/OAuth2 specific
+#    org.springframework.security.oauth2.jwt: DEBUG
+#    org.springframework.security.oauth2.server.resource: DEBUG
+#    org.springframework.security.oauth2.client: DEBUG
+#
+#    # Web/HTTP logging
+#    org.springframework.web: DEBUG
+#    org.springframework.web.filter: DEBUG
+#
+#    # Your application packages
+#    com.yarvannim.stream_service: DEBUG
 
-    # JWT/OAuth2 specific
-    org.springframework.security.oauth2.jwt: DEBUG
-    org.springframework.security.oauth2.server.resource: DEBUG
-    org.springframework.security.oauth2.client: DEBUG
-
-    # Web/HTTP logging
-    org.springframework.web: DEBUG
-    org.springframework.web.filter: DEBUG
-
-    # Your application packages
-    com.yarvannim.stream_service: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      access: unrestricted
