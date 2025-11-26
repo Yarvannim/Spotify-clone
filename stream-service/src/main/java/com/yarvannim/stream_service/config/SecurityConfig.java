@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/search/**").permitAll()
+                        .requestMatchers("/api/search/**", "/actuator/**").permitAll()
                         .requestMatchers(
                                 "/api/songs/stream/**",
                                 "/api/users/sync",
