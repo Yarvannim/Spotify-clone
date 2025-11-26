@@ -2,6 +2,7 @@ package com.yarvannim.stream_service.controller;
 
 import com.yarvannim.stream_service.business.implementation.GdprComplianceService;
 import com.yarvannim.stream_service.business.implementation.UserService;
+import com.yarvannim.stream_service.domain.entity.UserPrivacyPreferences;
 import com.yarvannim.stream_service.dto.requests.UserUpdateRequest;
 import com.yarvannim.stream_service.dto.responses.UserResponse;
 import lombok.AllArgsConstructor;

@@ -2,6 +2,7 @@ package com.yarvannim.stream_service.business.implementation;
 
 import com.yarvannim.stream_service.domain.entity.User;
 import com.yarvannim.stream_service.dto.responses.UserResponse;
+import com.yarvannim.stream_service.repository.UserPrivacyPreferencesReposity;
 import com.yarvannim.stream_service.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -18,7 +19,7 @@ import static com.yarvannim.stream_service.business.utils.AuthUtils.extractUserI
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final GdprComplianceService gdprComplianceService;
+    private final UserPrivacyPreferencesReposity userPrivacyPreferencesReposity;
 
 
     public Mono<User> syncUserFromKeycloak(Authentication authentication){

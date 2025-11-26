@@ -1,11 +1,14 @@
 import React, {createContext, useCallback, useContext, useEffect, useState} from "react";
 import { keycloak, initKeycloak} from "./keycloak.ts";
 import {userApiService, type UserProfile} from "../services/UserApi.ts";
+import type {PrivacyPreferences, PrivacyPreferencesUpdateRequest} from "../types/Privacy.ts";
+import {privacyApiService} from "../services/PrivacyApi.ts";
 
 interface AuthContextType {
     isAuthenticated: boolean;
     user: any;
     userProfile: UserProfile | null;
+    privacyPreferences: PrivacyPreferences | null;
     login: () => void;
     logout: () => void;
     register: () => void;
@@ -14,6 +17,8 @@ interface AuthContextType {
     syncUserProfile: () => Promise<void>;
     refreshUserProfile: () => Promise<void>;
     updateDisplayName: (displayName: string) => Promise<void>;
+    refreshPrivacyPreferences: () => Promise<void>;
+    updatePrivacyPreferences: (preferences: PrivacyPreferencesUpdateRequest) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,7 +27,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode}> = ({ children 
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [user, setUser] = useState<any>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [privacyPreferences, setPrivacyPreferences] = useState<PrivacyPreferences | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const refreshPrivacyPreferences = useCallback(async (): Promise<void> => {
+        if (!keycloak.authenticated) return;
+
+        try {
+            const preferences = await privacyApiService.getPrivacyPreferences();
+            setPrivacyPreferences(preferences);
+        } catch (error) {
+            console.error('Failed to refresh privacy preferences:', error);
+            setPrivacyPreferences({
+                userId: user?.sub || '',
+                dataProcessingConsent: false,
+                dataSharingConsent: false,
+                marketingConsent: false,
+                consentGivenAt: '',
+                preferencesUpdatedAt: ''
+            });
+        }
+    }, [user]);
+
+    const updatePrivacyPreferences = useCallback(async (preferences: PrivacyPreferencesUpdateRequest): Promise<void> => {
+        try {
+            const updated = await privacyApiService.updatePrivacyPreferences(preferences);
+            setPrivacyPreferences(updated);
+        } catch (error) {
+            throw new Error('Failed to update privacy preferences');
+        }
+    }, [])
 
     const syncUserProfile = useCallback(async (): Promise<void> => {
         if (!keycloak.authenticated) return;
@@ -30,10 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode}> = ({ children 
         try {
             const profile = await userApiService.syncUser();
             setUserProfile(profile);
-        } catch (error) {
-            throw new Error('Failed to sync user profile');
-        }
-    }, [])
+            refreshPrivacyPreferences().catch(error => {
+                console.error('Failed to refresh privacy preferences:', error);
+            });
+        } catch (error) {}
+    }, [refreshPrivacyPreferences])
 
     const refreshUserProfile = useCallback(async (): Promise<void> => {
         if (!keycloak.authenticated) return;
@@ -126,6 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode}> = ({ children 
         isAuthenticated,
         user,
         userProfile,
+        privacyPreferences,
         login,
         logout,
         register,
@@ -133,7 +169,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode}> = ({ children 
         loading,
         syncUserProfile,
         refreshUserProfile,
-        updateDisplayName
+        updateDisplayName,
+        refreshPrivacyPreferences,
+        updatePrivacyPreferences
     }
 
     return (

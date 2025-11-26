@@ -2,16 +2,19 @@ import { useState, useCallback} from "react";
 import {SearchBar} from "./components/SearchBar.tsx";
 import {SongStream} from "./components/SongStream.tsx";
 import {useAuth} from "./auth/AuthContext.tsx";
-import {UserProfile} from "./components/UserProfile.tsx";
+import {UserProfilePill} from "./components/UserProfilePill.tsx";
 import {LoginButton} from "./components/LoginButton.tsx";
+import {GdrpConsentBanner} from "./components/GdrpConsentBanner.tsx";
 
 function App() {
     const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, privacyPreferences, updatePrivacyPreferences } = useAuth();
 
     const handleSongSelect = useCallback((songId: string) => {
         setSelectedSongId(songId);
     }, [])
+
+    const showGdprBanner = isAuthenticated && privacyPreferences && !privacyPreferences.dataProcessingConsent
 
     return (
         <div className={"min-h-screen bg-gradient-to-br from-green-50 to-blue-50"}>
@@ -23,8 +26,8 @@ function App() {
                     <p className={"text-gray-600 text-lg"}>
                         Discover and listen to your favorite songs.
                     </p>
-                    <div className={"flex items-center gap-4"}>
-                        {isAuthenticated ? <UserProfile/> : <LoginButton/>}
+                    <div className={"flex items-center gap-4 text-center justify-center"}>
+                        {isAuthenticated ? <UserProfilePill/> : <LoginButton/>}
                     </div>
                 </header>
 
@@ -46,6 +49,19 @@ function App() {
                     </p>
                 </footer>
             </div>
+
+            {showGdprBanner && (
+                <GdrpConsentBanner
+                    onAccept={updatePrivacyPreferences}
+                    onCustomize={() => {
+                        const profilePill = document.querySelector('[user-profile-pill]');
+                        if (profilePill) {
+                            (profilePill as HTMLElement).click();
+                        }
+                    }}
+                    isOpen={showGdprBanner}
+                />
+            )}
         </div>
     )
 }
