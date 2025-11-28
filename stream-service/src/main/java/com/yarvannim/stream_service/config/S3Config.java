@@ -27,13 +27,6 @@ public class S3Config {
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(objectStorageProperties.getAccessKey(), objectStorageProperties.getSecretKey())
                 ));
-
-        if(objectStorageProperties.getProvider().equals("MINIO")) {
-            builder.endpointOverride(URI.create(objectStorageProperties.getEndpoint()))
-                    .serviceConfiguration(S3Configuration.builder()
-                            .pathStyleAccessEnabled(true)
-                            .build());
-        }
         return builder.build();
     }
 
@@ -44,13 +37,6 @@ public class S3Config {
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(objectStorageProperties.getAccessKey(), objectStorageProperties.getSecretKey())
                 ));
-        if (objectStorageProperties.getProvider().equals("MINIO")) {
-            builder.endpointOverride(URI.create(objectStorageProperties.getEndpoint()))
-                    .serviceConfiguration(S3Configuration.builder()
-                            .pathStyleAccessEnabled(true)
-                            .build());
-
-        }
         return builder.build();
     }
 }

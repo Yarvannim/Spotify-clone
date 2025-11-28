@@ -1,10 +1,13 @@
 spring:
   application:
     name: stream-service
+  profiles:
+    active: ${PROFILE:local}
   config:
     import: "vault://"  # This enables Vault configuration
   cloud:
     vault:
+      enabled: ${VAULT_ENABLED:false}
       uri: ${SPRING_CLOUD_VAULT_URI:http://localhost:8200}
       token: ${SPRING_CLOUD_VAULT_TOKEN:root-token}
       kv:
@@ -16,55 +19,19 @@ spring:
       connection-timeout: 5000
       read-timeout: 15000
 
-  # Cassandra Configuration (non-sensitive)
-  cassandra:
-    contact-points: cassandra:9042
-    local-datacenter: datacenter1
-    keyspace-name: spotify_clone
-    pool:
-      heartbeat-interval: 30s
-      idle-timeout: 120s
-      max-queue-size: 256
-    ssl:
-      enabled: false
-    schema-action: create-if-not-exists
-    request:
-      timeout: 10s
-      page-size: 5000
-
-  # Security (Keycloak)
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://keycloak:8080/realms/spotify-clone
-
-  # Elasticsearch
-  elasticsearch:
-    uris: elasticsearch:9200
-    connection-timeout: 1s
-    socket-timeout: 5s
-
-# Custom Application Properties
-
-app:
-  keycloak:
-    client-id: spotify-backend
-    client-secret: ${keycloak.client-secret}  # From Vault
-  frontend:
-    url: http://localhost:3000
-
-object:
-  storage:
-    provider: MINIO
-    endpoint: http://minio:9000
-    access-key: ${minio.access-key}  # From Vault
-    secret-key: ${minio.secret-key}  # From Vault
-    bucket-name: music
-    presigned-url-expiration-minutes: 10
-    region: eu-west-1
 server:
   port: 8008
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      access: unrestricted
 
 #logging:
 #  level:
@@ -86,13 +53,96 @@ server:
 #    # Your application packages
 #    com.yarvannim.stream_service: DEBUG
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, metrics, prometheus
-  endpoint:
-    health:
-      show-details: always
-    prometheus:
-      access: unrestricted
+---
+# Local profile
+spring:
+  config:
+    activate:
+      on-profile: local
+  # Cassandra Configuration (non-sensitive)
+  cassandra:
+    contact-points: ${CASSANDRA_HOST:cassandra}:9042
+    local-datacenter: datacenter1
+    keyspace-name: spotify_clone
+    pool:
+      heartbeat-interval: 30s
+      idle-timeout: 120s
+      max-queue-size: 256
+    ssl:
+      enabled: false
+    schema-action: create-if-not-exists
+    request:
+      timeout: 10s
+      page-size: 5000
+  # Security (Keycloak)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URL:http://keycloak:8080/realms/spotify-clone}
+  # Elasticsearch
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:elasticsearch:9200}
+    connection-timeout: 1s
+    socket-timeout: 5s
+
+app:
+  keycloak:
+    client-id: spotify-backend
+    client-secret: ${keycloak.client-secret}  # From Vault
+  frontend:
+    url: http://localhost:3000
+
+object:
+  storage:
+    provider: MINIO
+    endpoint: http://minio:9000
+    access-key: ${minio.access-key}  # From Vault
+    secret-key: ${minio.secret-key}  # From Vault
+    bucket-name: music
+    presigned-url-expiration-minutes: 10
+    region: eu-west-1
+
+---
+# cloud profile
+spring:
+  config:
+    activate:
+      on-profile: cloud
+  cassandra:
+    contact-points: ${AWS_KEYSPACES_CONTACT_POINTS}
+    local-datacenter: ${AWS_KEYSPACES_LOCAL_DATACENTER:eu-west-1}
+    keyspace-name: ${AWS_KEYSPACES_KEYSPACE:spotify_clone}
+    username: ${AWS_KEYSPACES_USERNAME}
+    password: ${AWS_KEYSPACES_PASSWORD}
+    ssl:
+      enabled: true
+    schema-action: create_if_not_exists
+    request:
+      timeout: 10s
+      page-size: 5000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
+  elasticsearch:
+    uris: ${OPENSEARCH_ENDPOINT}
+    username: ${OPENSEARCH_USERNAME}
+    password: ${OPENSEARCH_PASSWORD}
+    connection-timeout: 5s
+    socket-timeout: 30s
+
+app:
+  keycloak:
+    client-id: ${KEYCLOAK_CLIENT_ID:spotify-backend}
+    client-secret: ${KEYCLOAK_CLIENT_SECRET}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+
+object:
+  storage:
+    provider: S3
+    bucket-name: ${S3_BUCKET_NAME}
+    presigned-url-expiration-minutes: 10
+    region: ${AWS_REGION:eu-west-1}
