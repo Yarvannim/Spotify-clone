@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-service
+  labels:
+    app: stream-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: stream-service
+  template:
+    metadata:
+      labels:
+        app: stream-service
+    spec:
+      containers:
+        - name: stream-service
+          image: stream-service:local
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "local"
+            - name: PROFILE
+              value: "local"
+            # Connect to Docker Compose services using Docker service names
+            - name: SPRING_DATA_CASSANDRA_CONTACT_POINTS
+              value: "cassandra"  # Docker service name in the shared network
+            - name: SPRING_ELASTICSEARCH_URIS
+              value: "http://elasticsearch:9200"  # Docker service name
+            - name: OBJECT_STORAGE_ENDPOINT
+              value: "http://minio:9000"  # Docker service name
+            - name: SPRING_CLOUD_VAULT_URI
+              value: "http://vault:8200"  # Docker service name
+            - name: KEYCLOAK_ISSUER_URL
+              value: "http://keycloak:8080/realms/spotify-clone"  # Now in k3d
+            - name: VAULT_ENABLED
+              value: "true"
+            - name: SPRING_CLOUD_VAULT_TOKEN
+              value: "root-token"
+          ports:
+            - containerPort: 8008
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8008
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8008
+            initialDelaySeconds: 15
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream-service
+spec:
+  selector:
+    app: stream-service
+  ports:
+    - port: 8008
+      targetPort: 8008
+  type: ClusterIP

@@ -3,8 +3,8 @@ spring:
     name: stream-service
   profiles:
     active: ${PROFILE:local}
-  config:
-    import: "vault://"  # This enables Vault configuration
+#  config:
+#    import: "vault://"  # This enables Vault configuration
   cloud:
     vault:
       enabled: ${VAULT_ENABLED:false}
@@ -26,32 +26,32 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, prometheus
+        include: health, info, metrics, prometheus, readiness
   endpoint:
     health:
       show-details: always
     prometheus:
       access: unrestricted
 
-#logging:
-#  level:
-#    # Spring Security specific logging
-#    org.springframework.security: DEBUG
-#    org.springframework.security.oauth2: DEBUG
-#    org.springframework.security.web: DEBUG
-#    org.springframework.security.config: DEBUG
-#
-#    # JWT/OAuth2 specific
-#    org.springframework.security.oauth2.jwt: DEBUG
-#    org.springframework.security.oauth2.server.resource: DEBUG
-#    org.springframework.security.oauth2.client: DEBUG
-#
-#    # Web/HTTP logging
-#    org.springframework.web: DEBUG
-#    org.springframework.web.filter: DEBUG
-#
-#    # Your application packages
-#    com.yarvannim.stream_service: DEBUG
+logging:
+  level:
+    # Spring Security specific logging
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.security.config: DEBUG
+
+    # JWT/OAuth2 specific
+    org.springframework.security.oauth2.jwt: DEBUG
+    org.springframework.security.oauth2.server.resource: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+
+    # Web/HTTP logging
+    org.springframework.web: DEBUG
+    org.springframework.web.filter: DEBUG
+
+    # Your application packages
+    com.yarvannim.stream_service: DEBUG
 
 ---
 # Local profile
@@ -146,3 +146,50 @@ object:
     bucket-name: ${S3_BUCKET_NAME}
     presigned-url-expiration-minutes: 10
     region: ${AWS_REGION:eu-west-1}
+
+---
+# local k3d profile for kubernetes with docker compose
+spring:
+  config:
+    activate:
+      on-profile: local-k3d
+  cassandra:
+    contact-points: cassandra.spotify-clone-network:9042
+    local-datacenter: datacenter1
+    keyspace-name: spotify_clone
+    pool:
+      heartbeat-interval: 30s
+      idle-timeout: 120s
+      max-queue-size: 256
+    ssl:
+      enabled: false
+    schema-action: create-if-not-exists
+    request:
+      timeout: 10s
+      page-size: 5000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/spotify-clone
+  elasticsearch:
+    uris: elasticsearch.spotify-clone-network:9200
+    connection-timeout: 1s
+    socket-timeout: 5s
+
+app:
+  keycloak:
+    client-id: spotify-backend
+    client-secret: ${keycloak.client-secret}
+  frontend:
+    url: http://frontend
+
+object:
+  storage:
+    provider: MINIO
+    endpoint: http://minio.spotify-clone-network:9000
+    access-key: ${minio.access-key}
+    secret-key: ${minio.secret-key}
+    bucket-name: music
+    presigned-url-expiration-minutes: 10
+    region: eu-west-1

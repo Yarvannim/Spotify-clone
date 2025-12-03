@@ -69,7 +69,7 @@ services:
       - spotify-clone-network
 
   elasticsearch:
-    image: elasticsearch:8.17.10
+    image: elasticsearch:8.18.8
     container_name: elasticsearch
     ports:
       - "9200:9200"
