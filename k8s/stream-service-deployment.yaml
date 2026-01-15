@@ -1,11 +1,20 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: stream-service-sa
+  namespace: spotify-clone
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/spotify-clone-stream-service-role
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-service
+  namespace: spotify-clone
   labels:
     app: stream-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: stream-service
@@ -14,29 +23,52 @@ spec:
       labels:
         app: stream-service
     spec:
+      serviceAccountName: stream-service-sa
       containers:
         - name: stream-service
-          image: stream-service:local
+          image: nginx:alpine
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: "local"
-            - name: PROFILE
-              value: "local"
-            # Connect to Docker Compose services using Docker service names
+              value: "aws"
             - name: SPRING_DATA_CASSANDRA_CONTACT_POINTS
-              value: "cassandra"  # Docker service name in the shared network
+              valueFrom:
+                configMapKeyRef:
+                  name: aws-config
+                  key: keyspaces_contact_points
+            - name: SPRING_DATA_CASSANDRA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keyspaces-credentials
+                  key: keyspaces_username
+            - name: SPRING_DATA_CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keyspaces-credentials
+                  key: keyspaces_password
             - name: SPRING_ELASTICSEARCH_URIS
-              value: "http://elasticsearch:9200"  # Docker service name
-            - name: OBJECT_STORAGE_ENDPOINT
-              value: "http://minio:9000"  # Docker service name
-            - name: SPRING_CLOUD_VAULT_URI
-              value: "http://vault:8200"  # Docker service name
+              valueFrom:
+                configMapKeyRef:
+                  name: aws-config
+                  key: opensearch_endpoint
+            - name: SPRING_ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-credentials
+                  key: opensearch_username
+            - name: SPRING_ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-credentials
+                  key: opensearch_password
+            - name: AWS_REGION
+              value: "eu-central-1"
+            - name: S3_BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: aws-config
+                  key: s3_bucket_name
             - name: KEYCLOAK_ISSUER_URL
-              value: "http://keycloak:8080/realms/spotify-clone"  # Now in k3d
-            - name: VAULT_ENABLED
-              value: "true"
-            - name: SPRING_CLOUD_VAULT_TOKEN
-              value: "root-token"
+              value: "http://keycloak.spotify-clone.svv.cluster.local:8080/realms/spotify-clone"
           ports:
             - containerPort: 8008
           resources:
@@ -48,14 +80,14 @@ spec:
               cpu: "500m"
           livenessProbe:
             httpGet:
-              path: /actuator/health
               port: 8008
+              path: /actuator/health
             initialDelaySeconds: 20
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /actuator/health
               port: 8008
+              path: /actuator/health
             initialDelaySeconds: 15
             periodSeconds: 5
 ---
@@ -63,6 +95,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: stream-service
+  namespace: spotify-clone
 spec:
   selector:
     app: stream-service

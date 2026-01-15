@@ -53,3 +53,8 @@ output "alb_security_group_id" {
   description = "Security group ID for the ALB"
   value       = aws_security_group.alb_sg.id
 }
+
+output "aws_load_balancer_controller_role_arn" {
+  description = "ARN for AWS Load Balancer Controller IAM role"
+  value       = aws_iam_role.aws_load_balancer_controller.arn
+}

@@ -108,16 +108,17 @@ object:
 spring:
   config:
     activate:
-      on-profile: cloud
+      on-profile: aws
   cassandra:
     contact-points: ${AWS_KEYSPACES_CONTACT_POINTS}
-    local-datacenter: ${AWS_KEYSPACES_LOCAL_DATACENTER:eu-west-1}
-    keyspace-name: ${AWS_KEYSPACES_KEYSPACE:spotify_clone}
-    username: ${AWS_KEYSPACES_USERNAME}
-    password: ${AWS_KEYSPACES_PASSWORD}
+    port: 9142
+    local-datacenter: ${AWS_KEYSPACES_LOCAL_DATACENTER:eu-central-1}
+    keyspace-name: ${AWS_KEYSPACES_KEYSPACE:spotify_keyspace}
+    username: ${AWS_ACCESS_KEY_ID}
+    password: ${AWS_SECRET_ACCESS_KEY}
     ssl:
       enabled: true
-    schema-action: create_if_not_exists
+    schema-action: none
     request:
       timeout: 10s
       page-size: 5000
@@ -127,9 +128,9 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
   elasticsearch:
-    uris: ${OPENSEARCH_ENDPOINT}
-    username: ${OPENSEARCH_USERNAME}
-    password: ${OPENSEARCH_PASSWORD}
+    uris: ${AWS_OPENSEARCH_ENDPOINT}
+    username: ${AWS_OPENSEARCH_USERNAME}
+    password: ${AWS_OPENSEARCH_PASSWORD}
     connection-timeout: 5s
     socket-timeout: 30s
 
@@ -143,9 +144,9 @@ app:
 object:
   storage:
     provider: S3
-    bucket-name: ${S3_BUCKET_NAME}
+    bucket-name: ${AWS_S3_BUCKET}
     presigned-url-expiration-minutes: 10
-    region: ${AWS_REGION:eu-west-1}
+    region: ${AWS_REGION:eu-central-1}
 
 ---
 # local k3d profile for kubernetes with docker compose

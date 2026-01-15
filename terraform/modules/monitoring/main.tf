@@ -10,7 +10,9 @@ resource "aws_grafana_workspace" "main" {
   name = "spotify-clone-${var.environment}"
   account_access_type = "CURRENT_ACCOUNT"
   authentication_providers = ["AWS_SSO"]
-  permission_type = "SERVICE_MANAGED"
+  permission_type = "CUSTOMER_MANAGED"
+  role_arn = aws_iam_role.grafana.arn
+  data_sources = ["PROMETHEUS", "CLOUDWATCH"]
 
   tags = {
     Environment = var.environment

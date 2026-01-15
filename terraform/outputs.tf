@@ -28,12 +28,12 @@ output "keyspaces_contact_points" {
   value = module.databases.keyspaces_contact_points
 }
 
-output "grafana_workspace_url" {
-  description = "Amazon managed Grafana workspace URL"
-  value = module.monitoring.grafana_workspace_url
-}
-
-output "prometheus_workspace_id" {
-  description = "Amazon managed Prometheus workspace ID"
-  value = module.monitoring.prometheus_workspace_id
-}
+# output "grafana_workspace_url" {
+#   description = "Amazon managed Grafana workspace URL"
+#   value = module.monitoring.grafana_workspace_url
+# }
+#
+# output "prometheus_workspace_id" {
+#   description = "Amazon managed Prometheus workspace ID"
+#   value = module.monitoring.prometheus_workspace_id
+# }

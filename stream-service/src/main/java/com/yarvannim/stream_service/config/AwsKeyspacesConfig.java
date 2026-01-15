@@ -11,7 +11,7 @@ import org.springframework.data.cassandra.config.SessionBuilderConfigurer;
 
 @Configuration
 @Getter
-@Profile("cloud")
+@Profile("aws")
 public class AwsKeyspacesConfig extends AbstractReactiveCassandraConfiguration {
 
     @Value("${spring.cassandra.contact-points}")
@@ -32,7 +32,7 @@ public class AwsKeyspacesConfig extends AbstractReactiveCassandraConfiguration {
     @NotNull
     @Override
     public SchemaAction getSchemaAction() {
-        return SchemaAction.CREATE_IF_NOT_EXISTS;
+        return SchemaAction.NONE;
     }
 
     @Override

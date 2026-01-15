@@ -26,3 +26,7 @@ output "keyspaces_password" {
   value = random_password.keyspaces_password.result
   sensitive = true
 }
+
+output "opensearch_security_group_id" {
+  value = aws_security_group.opensearch.id
+}
