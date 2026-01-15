@@ -18,6 +18,7 @@ public class ObjectStorageServiceFactory {
     public ObjectStorageService getObjectStorageService() {
         return switch (objectStorageProperties.getProvider()){
             case MINIO -> applicationContext.getBean(MinioStorageService.class);
+            case S3 -> applicationContext.getBean(S3StorageService.class);
         };
     }
 }

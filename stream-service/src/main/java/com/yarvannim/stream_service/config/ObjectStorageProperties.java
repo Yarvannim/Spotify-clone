@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class ObjectStorageProperties {
     public enum Provider {
         MINIO,
+        S3
     }
     private Provider provider;
     private String endpoint;

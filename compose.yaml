@@ -69,7 +69,7 @@ services:
       - spotify-clone-network
 
   elasticsearch:
-    image: elasticsearch:8.17.10
+    image: elasticsearch:8.18.8
     container_name: elasticsearch
     ports:
       - "9200:9200"
@@ -88,26 +88,26 @@ services:
       retries: 5
       start_period: 30s
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.4.1
-    container_name: keycloak
-    ports:
-      - "8080:8080"
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_DB: dev-file
-      KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME_STRICT: "false"
-      KC_HOSTNAME: "keycloak"
-    volumes:
-      - keycloak_data:/opt/keycloak/data
-      - ./scripts/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
-    command: start-dev --import-realm
-    depends_on:
-      - cassandra
-    networks:
-      - spotify-clone-network
+#  keycloak:
+#    image: quay.io/keycloak/keycloak:26.4.1
+#    container_name: keycloak
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+#      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+#      KC_DB: dev-file
+#      KC_HTTP_ENABLED: "true"
+#      KC_HOSTNAME_STRICT: "false"
+#      KC_HOSTNAME: "keycloak"
+#    volumes:
+#      - keycloak_data:/opt/keycloak/data
+#      - ./scripts/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+#    command: start-dev --import-realm
+#    depends_on:
+#      - cassandra
+#    networks:
+#      - spotify-clone-network
 
   minio:
     image: quay.io/minio/minio:latest
@@ -126,56 +126,56 @@ services:
     networks:
       - spotify-clone-network
 
-  stream-service:
-    #image: ghcr.io/yarvannim/spotify-clone/stream-service:latest
-    image: stream-service:local
-    build:
-      context: ./stream-service
-      dockerfile: Dockerfile
-    container_name: stream-service
-    ports:
-      - "8008:8008"
-    environment:
-      SPRING_CLOUD_VAULT_URI: http://vault:8200
-      SPRING_CLOUD_VAULT_TOKEN: root-token
+#  stream-service:
+#    #image: ghcr.io/yarvannim/spotify-clone/stream-service:latest
+#    image: stream-service:local
+#    build:
+#      context: ./stream-service
+#      dockerfile: Dockerfile
+#    container_name: stream-service
+#    ports:
+#      - "8008:8008"
+#    environment:
+#      SPRING_CLOUD_VAULT_URI: http://vault:8200
+#      SPRING_CLOUD_VAULT_TOKEN: root-token
+#
+#      OBJECT_STORAGE_PROVIDER: MINIO
+#      OBJECT_STORAGE_ENDPOINT: http://minio:9000
+#      OBJECT_STORAGE_REGION: eu-west-1
+#      OBJECT_STORAGE_BUCKET_NAME: music
+#      OBJECT_STORAGE_PRESIGNED_URL_EXPIRATION_MINUTES: 10
+#    networks:
+#      - spotify-clone-network
+#    depends_on:
+#      minio:
+#        condition: service_started
+#      cassandra:
+#        condition: service_started
+#      keycloak:
+#        condition: service_started
+#      elasticsearch:
+#        condition: service_healthy
+#    pull_policy: always
 
-      OBJECT_STORAGE_PROVIDER: MINIO
-      OBJECT_STORAGE_ENDPOINT: http://minio:9000
-      OBJECT_STORAGE_REGION: eu-west-1
-      OBJECT_STORAGE_BUCKET_NAME: music
-      OBJECT_STORAGE_PRESIGNED_URL_EXPIRATION_MINUTES: 10
-    networks:
-      - spotify-clone-network
-    depends_on:
-      minio:
-        condition: service_started
-      cassandra:
-        condition: service_started
-      keycloak:
-        condition: service_started
-      elasticsearch:
-        condition: service_healthy
-    pull_policy: always
-
-  frontend:
-    image: react-client:local
-    build:
-      context: ./react-client
-      dockerfile: Dockerfile
-    container_name: react-client
-    ports:
-      - "3000:80"
-    networks:
-      - spotify-clone-network
-    depends_on:
-      - stream-service
-      - keycloak
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+#  frontend:
+#    image: react-client:local
+#    build:
+#      context: ./react-client
+#      dockerfile: Dockerfile
+#    container_name: react-client
+#    ports:
+#      - "3000:80"
+#    networks:
+#      - spotify-clone-network
+#    depends_on:
+#      - stream-service
+#      - keycloak
+#    healthcheck:
+#      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 30s
 
 networks:
   spotify-clone-network:

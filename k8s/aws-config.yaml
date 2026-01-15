@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-config
+  namespace: spotify-clone
+data:
+  s3_bucket_name: "spotify-clone-music-dev"  # Will be replaced
+  keyspaces_contact_points: "cassandra.eu-central-1.amazonaws.com"  # Will be replaced
+  opensearch_endpoint: ""  # Will be replaced
+  aws_region: "eu-central-1"
